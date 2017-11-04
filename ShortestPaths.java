@@ -35,13 +35,147 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.PriorityQueue;
 import java.util.Stack;
+import java.util.ArrayList;
+import java.util.Arrays;
 
+class NodeHeapElement {
+	public int n, weight;
+
+	public NodeHeapElement(int n){
+		this.n = n;
+		this.weight = 999999;
+	}
+}
+
+class NodeHeap {
+	//Array based nodeHeap
+	public NodeHeapElement[] nodeHeap;
+
+	//nodeHeap[some i in indexes].n == n
+	public int[] indexes;
+
+	//Index of last valid element in nodeHeap
+	private int heapEnd;
+
+	//Initialize nodeHeap
+	public NodeHeap(int size){
+		nodeHeap = new NodeHeapElement[size + 1];
+		heapEnd = size;
+		indexes = new int[size + 1];
+
+		for (int i = 0; i < size; i++){
+			nodeHeap[i + 1] = new NodeHeapElement(i);
+			indexes[i] = i + 1;
+		}
+	}
+
+	//Size of nodeHeap
+	public int size(){
+		return heapEnd;
+	}
+
+	private void heapSwap(int i, int j) {
+		NodeHeapElement elemi = nodeHeap[i];
+		NodeHeapElement elemj = nodeHeap[j];
+
+		nodeHeap[j] = elemi;
+		nodeHeap[i] = elemj;
+
+		indexes[nodeHeap[j].n] = j;
+		indexes[nodeHeap[i].n] = i;
+	}
+
+	private void downHeap(int i) {
+		if (2*i > heapEnd) {
+			return;
+		}
+
+		//If two children, choose smallest
+		int leftIndex = 2*i;
+		int leftWeight = nodeHeap[leftIndex].weight;
+
+		int rightIndex = 2*i+1;
+		int rightWeight = 999999;
+
+		if (rightIndex <= heapEnd) {
+			rightWeight = nodeHeap[rightIndex].weight;
+		}
+
+		int minChildIndex = leftIndex;
+
+		if (leftWeight > rightWeight) {
+			minChildIndex = rightIndex;
+		}if (nodeHeap[i].weight < nodeHeap[minChildIndex].weight) {
+			return;
+		}
+
+		heapSwap(i, minChildIndex);
+		downHeap(minChildIndex);
+	}
+
+	private void upHeap(int i) {
+		//Parent is floor i/2
+		if (Math.floor(i/2) < 1) {
+			return;
+		}
+
+		//If two children, choose smallest
+		int parentIndex = (int) Math.floor(i/2);
+
+		if (nodeHeap[i].weight > nodeHeap[parentIndex].weight) {
+			return;
+		}
+
+		heapSwap(i, parentIndex);
+		upHeap(parentIndex);
+	}
+
+	//Remove and return the minimum element
+	public NodeHeapElement removeMin(){
+		NodeHeapElement removeElem = nodeHeap[1];
+		heapSwap(1, heapEnd);
+		heapEnd--;
+		downHeap(1);
+		return removeElem;
+	}
+
+	//Return the current weight of a node
+	public int getWeight(int vertex){
+		int heapIndex = indexes[vertex];
+		NodeHeapElement e = nodeHeap[heapIndex];
+		return e.weight;
+	}
+
+	//Set the weight of node oldNodeWeight to newNodeWeight
+	public void adjust(int oldNodeWeight, int newNodeWeight){
+
+		int oldNodeIndex = indexes[oldNodeWeight];
+		NodeHeapElement adjustElement = nodeHeap[oldNodeIndex];
+		if (newNodeWeight > adjustElement.weight)
+			throw new Error();
+		adjustElement.weight = newNodeWeight;
+		
+		upHeap(oldNodeIndex);
+	}
+}
+
+class Data {
+	int index;
+	boolean scanned;
+	ArrayList<Integer> nodeNeighbors;
+
+	Data(int index, ArrayList<Integer> nodeNeighbors) {
+		this.index = index;
+		this.nodeNeighbors = nodeNeighbors;
+		this.scanned = false;
+	}
+}
 
 //Do not change the name of the ShortestPaths class
 public class ShortestPaths{
 
     //TODO: Your code here   
-        public static int numVerts;
+    public static int numNodes;
 	/* ShortestPaths(G) 
 	   Given an adjacency matrix for graph G, calculates and stores the
 	   shortest paths to all the vertices from the source vertex.
@@ -52,9 +186,13 @@ public class ShortestPaths{
 		No entries of G will be negative.
 	*/
 	static void ShortestPaths(int[][] G, int source){
-		numVerts = G.length;
-		//TODO: Your code here             
-        
+		numNodes = G.length;
+		int min;
+		int totalWeight = 0;
+
+		// Initialize
+		Data[] data = new Data[numNodes];
+		NodeHeap queue = new NodeHeap(numNodes);
 	}
         
     static void PrintPaths(int source){
